@@ -23,6 +23,7 @@ const INITIAL_LOADS = [
     pay: 425,
     active: true,
     podName: "",
+    loadPhotoName: "",
     rateConName: "GP-1048-rate-confirmation.pdf"
   },
   {
@@ -39,6 +40,7 @@ const INITIAL_LOADS = [
     pay: 390,
     active: false,
     podName: "GP-1047-POD.jpg",
+    loadPhotoName: "GP-1047-loaded-freight.jpg",
     rateConName: "GP-1047-rate-confirmation.pdf"
   }
 ];
@@ -130,6 +132,7 @@ export default function Home() {
       status: "Assigned",
       active: true,
       podName: "",
+      loadPhotoName: "",
       rateConName: ""
     };
 
@@ -236,7 +239,7 @@ export default function Home() {
                 <div>
                   <span className="loadNumber">{activeLoad.id}</span>
                   <h3>
-                    {activeLoad.pickup} → {activeLoad.delivery}
+                    {activeLoad.pickup} → {activeLoad.loadPhotoName && ["Loaded", "In Transit", "Delivered"].includes(activeLoad.status) ? activeLoad.delivery : "Delivery locked"}
                   </h3>
                 </div>
                 <span className="status">{activeLoad.status}</span>
@@ -249,7 +252,7 @@ export default function Home() {
                 </div>
                 <div>
                   <small>Delivery</small>
-                  <strong>{activeLoad.deliveryDate}</strong>
+                  <strong>{activeLoad.loadPhotoName && ["Loaded", "In Transit", "Delivered"].includes(activeLoad.status) ? activeLoad.deliveryDate : "Locked"}</strong>
                 </div>
                 <div>
                   <small>Broker</small>
@@ -272,6 +275,20 @@ export default function Home() {
                           activeLoad.status === status ? "primary" : "secondary"
                         }
                         onClick={() => {
+                          if (status === "Loaded" && !activeLoad.loadPhotoName) {
+                            flash("Take a clear photo of the loaded freight first.");
+                            document.getElementById("load-photo-input")?.click();
+                            return;
+                          }
+
+                          if (
+                            (status === "In Transit" || status === "Delivered") &&
+                            !activeLoad.loadPhotoName
+                          ) {
+                            flash("The loaded-freight photo is required first.");
+                            return;
+                          }
+
                           updateLoad(activeLoad.id, {
                             status,
                             active: status !== "Delivered"
@@ -284,6 +301,35 @@ export default function Home() {
                     )
                   )}
                 </div>
+              </div>
+
+              <div className="sectionBlock">
+                <h4>Loaded Freight Photo</h4>
+                <p className="requirementText">
+                  The delivery location stays locked until a clear photo of the loaded and secured freight is uploaded.
+                </p>
+                <label className="uploadBox">
+                  <input
+                    id="load-photo-input"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (!file) return;
+                      updateLoad(activeLoad.id, {
+                        loadPhotoName: file.name,
+                        status: "Loaded"
+                      });
+                      flash("Load photo saved. Delivery location unlocked.");
+                    }}
+                  />
+                  <span>📸</span>
+                  <strong>
+                    {activeLoad.loadPhotoName || "Take a photo of the loaded freight"}
+                  </strong>
+                  <small>Required before the delivery location is shown</small>
+                </label>
               </div>
 
               <div className="sectionBlock">
@@ -497,6 +543,10 @@ export default function Home() {
                       <span>
                         <small>Pay</small>
                         {money(load.pay)}
+                      </span>
+                      <span>
+                        <small>Loaded freight photo</small>
+                        {load.loadPhotoName || "Not uploaded"}
                       </span>
                       <span>
                         <small>POD</small>

@@ -26,3 +26,6 @@ To make logins, loads and documents permanent across devices:
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 The app is structured so Supabase can be connected next without redesigning the interface.
+
+## Driver load-photo rule
+The delivery location remains locked until the driver uploads a loaded-freight photo. Uploading the photo automatically changes the status to Loaded and unlocks the delivery information.
