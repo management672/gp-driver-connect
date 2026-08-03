@@ -1,4 +1,6 @@
-"use client";
+
+
+content = r'''"use client";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -46,6 +48,7 @@ const INITIAL_LOADS = [
 ];
 
 const DELIVERY_VISIBLE_STATUSES = ["Loaded", "In Transit", "Delivered"];
+const STATUS_FLOW = ["Assigned", "Arrived", "Loaded", "In Transit", "Delivered"];
 
 function money(value) {
   return new Intl.NumberFormat("en-US", {
@@ -186,13 +189,13 @@ export default function Home() {
 
           <div className="roleGrid">
             <button className="roleCard" onClick={() => setRole("driver")}>
-              <span className="roleIcon">ð</span>
+              <span className="roleIcon" aria-hidden="true">DRIVER</span>
               <strong>Driver Portal</strong>
               <small>Current load, status updates and POD</small>
             </button>
 
             <button className="roleCard" onClick={() => setRole("dispatch")}>
-              <span className="roleIcon">ð¥ï¸</span>
+              <span className="roleIcon" aria-hidden="true">DISPATCH</span>
               <strong>Dispatch Portal</strong>
               <small>Assign loads, paperwork and driver pay</small>
             </button>
@@ -210,6 +213,15 @@ export default function Home() {
     activeLoad?.loadPhotoName &&
       DELIVERY_VISIBLE_STATUSES.includes(activeLoad.status)
   );
+
+  const currentStatusIndex = activeLoad
+    ? STATUS_FLOW.indexOf(activeLoad.status)
+    : -1;
+
+  const nextStatus =
+    currentStatusIndex >= 0 && currentStatusIndex < STATUS_FLOW.length - 1
+      ? STATUS_FLOW[currentStatusIndex + 1]
+      : null;
 
   return (
     <main>
@@ -238,7 +250,7 @@ export default function Home() {
               <p className="eyebrow">WELCOME, CARLOS</p>
               <h1>Current Load</h1>
             </div>
-            <span className="online">â Online</span>
+            <span className="online">Online</span>
           </div>
 
           {!activeLoad ? (
@@ -252,8 +264,10 @@ export default function Home() {
                 <div>
                   <span className="loadNumber">{activeLoad.id}</span>
                   <h3>
-                    {activeLoad.pickup} â{" "}
-                    {deliveryUnlocked ? activeLoad.delivery : "Delivery locked"}
+                    {activeLoad.pickup} to{" "}
+                    {deliveryUnlocked
+                      ? activeLoad.delivery
+                      : "Delivery locked"}
                   </h3>
                 </div>
                 <span className="status">{activeLoad.status}</span>
@@ -274,53 +288,61 @@ export default function Home() {
                   <small>Load number</small>
                   <strong>{activeLoad.id}</strong>
                 </div>
-                <div>
-                  <small>Reference</small>
-                  <strong>{activeLoad.reference || "â"}</strong>
-                </div>
               </div>
 
               <div className="sectionBlock">
                 <h4>Update Status</h4>
                 <div className="statusButtons">
-                  {["Arrived", "Loaded", "In Transit", "Delivered"].map(
-                    (status) => (
-                      <button
-                        key={status}
-                        className={
-                          activeLoad.status === status ? "primary" : "secondary"
+                  {nextStatus ? (
+                    <button
+                      className="primary"
+                      onClick={() => {
+                        if (
+                          nextStatus === "Loaded" &&
+                          !activeLoad.loadPhotoName
+                        ) {
+                          flash(
+                            "Take a clear photo of the loaded freight first."
+                          );
+                          document
+                            .getElementById("load-photo-input")
+                            ?.click();
+                          return;
                         }
-                        onClick={() => {
-                          if (status === "Loaded" && !activeLoad.loadPhotoName) {
-                            flash("Take a clear photo of the loaded freight first.");
-                            document.getElementById("load-photo-input")?.click();
-                            return;
-                          }
 
-                          if (
-                            (status === "In Transit" || status === "Delivered") &&
-                            !activeLoad.loadPhotoName
-                          ) {
-                            flash("The loaded-freight photo is required first.");
-                            return;
-                          }
+                        if (
+                          (nextStatus === "In Transit" ||
+                            nextStatus === "Delivered") &&
+                          !activeLoad.loadPhotoName
+                        ) {
+                          flash(
+                            "The loaded-freight photo is required first."
+                          );
+                          return;
+                        }
 
-                          if (status === "Delivered" && !activeLoad.podName) {
-                            flash("Upload the POD before marking the load delivered.");
-                            document.getElementById("pod-input")?.click();
-                            return;
-                          }
+                        if (
+                          nextStatus === "Delivered" &&
+                          !activeLoad.podName
+                        ) {
+                          flash(
+                            "Upload the POD before marking the load delivered."
+                          );
+                          document.getElementById("pod-input")?.click();
+                          return;
+                        }
 
-                          updateLoad(activeLoad.id, {
-                            status,
-                            active: status !== "Delivered"
-                          });
-                          flash(`Status changed to ${status}.`);
-                        }}
-                      >
-                        {status}
-                      </button>
-                    )
+                        updateLoad(activeLoad.id, {
+                          status: nextStatus,
+                          active: nextStatus !== "Delivered"
+                        });
+                        flash(`Status changed to ${nextStatus}.`);
+                      }}
+                    >
+                      Mark {nextStatus}
+                    </button>
+                  ) : (
+                    <span className="status">Load completed</span>
                   )}
                 </div>
               </div>
@@ -328,7 +350,8 @@ export default function Home() {
               <div className="sectionBlock">
                 <h4>Loaded Freight Photo</h4>
                 <p className="requirementText">
-                  The delivery location stays locked until a clear photo of the loaded and secured freight is uploaded.
+                  The delivery location stays locked until a clear photo of
+                  the loaded and secured freight is uploaded.
                 </p>
                 <label className="uploadBox">
                   <input
@@ -343,15 +366,19 @@ export default function Home() {
                         loadPhotoName: file.name,
                         status: "Loaded"
                       });
-                      flash("Load photo saved. Delivery location unlocked.");
+                      flash(
+                        "Load photo saved. Delivery location unlocked."
+                      );
                     }}
                   />
-                  <span>ð¸</span>
+                  <span aria-hidden="true">PHOTO</span>
                   <strong>
                     {activeLoad.loadPhotoName ||
                       "Take a photo of the loaded freight"}
                   </strong>
-                  <small>Required before the delivery location is shown</small>
+                  <small>
+                    Required before the delivery location is shown
+                  </small>
                 </label>
               </div>
 
@@ -371,11 +398,13 @@ export default function Home() {
                       )
                     }
                   />
-                  <span>ð·</span>
+                  <span aria-hidden="true">POD</span>
                   <strong>
                     {activeLoad.podName || "Upload POD photo or PDF"}
                   </strong>
-                  <small>Required before marking the load delivered</small>
+                  <small>
+                    Required before marking the load delivered
+                  </small>
                 </label>
               </div>
             </article>
@@ -410,7 +439,10 @@ export default function Home() {
                   <input
                     value={newLoad.id}
                     onChange={(event) =>
-                      setNewLoad({ ...newLoad, id: event.target.value })
+                      setNewLoad({
+                        ...newLoad,
+                        id: event.target.value
+                      })
                     }
                     placeholder="GP-1049"
                   />
@@ -554,7 +586,7 @@ export default function Home() {
                       <div>
                         <strong>{load.id}</strong>
                         <p>
-                          {load.pickup} â {load.delivery}
+                          {load.pickup} to {load.delivery}
                         </p>
                       </div>
                       <span className="status">{load.status}</span>
@@ -567,7 +599,7 @@ export default function Home() {
                       </span>
                       <span>
                         <small>Broker</small>
-                        {load.broker || "â"}
+                        {load.broker || "—"}
                       </span>
                       <span>
                         <small>Pay</small>
@@ -609,7 +641,12 @@ export default function Home() {
         </section>
       )}
 
-      <footer>Â© 2026 G&amp;P LOGISTICS LLC</footer>
+      <footer>&copy; 2026 G&amp;P LOGISTICS LLC</footer>
     </main>
   );
 }
+'''
+
+path = Path("/mnt/data/page.js")
+path.write_text(content, encoding="utf-8")
+print(f"Created {path} with {len(content.splitlines())} lines")
