@@ -1,6 +1,4 @@
-from pathlib import Path
-
-content = r'''"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -188,13 +186,13 @@ export default function Home() {
 
           <div className="roleGrid">
             <button className="roleCard" onClick={() => setRole("driver")}>
-              <span className="roleIcon">🚚</span>
+              <span className="roleIcon">ð</span>
               <strong>Driver Portal</strong>
               <small>Current load, status updates and POD</small>
             </button>
 
             <button className="roleCard" onClick={() => setRole("dispatch")}>
-              <span className="roleIcon">🖥️</span>
+              <span className="roleIcon">ð¥ï¸</span>
               <strong>Dispatch Portal</strong>
               <small>Assign loads, paperwork and driver pay</small>
             </button>
@@ -240,7 +238,7 @@ export default function Home() {
               <p className="eyebrow">WELCOME, CARLOS</p>
               <h1>Current Load</h1>
             </div>
-            <span className="online">● Online</span>
+            <span className="online">â Online</span>
           </div>
 
           {!activeLoad ? (
@@ -254,7 +252,7 @@ export default function Home() {
                 <div>
                   <span className="loadNumber">{activeLoad.id}</span>
                   <h3>
-                    {activeLoad.pickup} →{" "}
+                    {activeLoad.pickup} â{" "}
                     {deliveryUnlocked ? activeLoad.delivery : "Delivery locked"}
                   </h3>
                 </div>
@@ -278,7 +276,7 @@ export default function Home() {
                 </div>
                 <div>
                   <small>Reference</small>
-                  <strong>{activeLoad.reference || "—"}</strong>
+                  <strong>{activeLoad.reference || "â"}</strong>
                 </div>
               </div>
 
@@ -348,7 +346,7 @@ export default function Home() {
                       flash("Load photo saved. Delivery location unlocked.");
                     }}
                   />
-                  <span>📸</span>
+                  <span>ð¸</span>
                   <strong>
                     {activeLoad.loadPhotoName ||
                       "Take a photo of the loaded freight"}
@@ -373,7 +371,7 @@ export default function Home() {
                       )
                     }
                   />
-                  <span>📷</span>
+                  <span>ð·</span>
                   <strong>
                     {activeLoad.podName || "Upload POD photo or PDF"}
                   </strong>
@@ -556,7 +554,7 @@ export default function Home() {
                       <div>
                         <strong>{load.id}</strong>
                         <p>
-                          {load.pickup} → {load.delivery}
+                          {load.pickup} â {load.delivery}
                         </p>
                       </div>
                       <span className="status">{load.status}</span>
@@ -569,7 +567,7 @@ export default function Home() {
                       </span>
                       <span>
                         <small>Broker</small>
-                        {load.broker || "—"}
+                        {load.broker || "â"}
                       </span>
                       <span>
                         <small>Pay</small>
@@ -611,12 +609,7 @@ export default function Home() {
         </section>
       )}
 
-      <footer>© 2026 G&amp;P LOGISTICS LLC</footer>
+      <footer>Â© 2026 G&amp;P LOGISTICS LLC</footer>
     </main>
   );
 }
-'''
-
-path = Path("/mnt/data/page.js")
-path.write_text(content, encoding="utf-8")
-print(f"Created {path} ({path.stat().st_size} bytes)")
