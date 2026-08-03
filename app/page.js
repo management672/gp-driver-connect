@@ -644,5 +644,3 @@ export default function Home() {
       <footer>&copy; 2026 G&amp;P LOGISTICS LLC</footer>
     </main>
   );
-}
-'
