@@ -1,4 +1,6 @@
-"use client";
+from pathlib import Path
+
+content = r'''"use client";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -44,6 +46,8 @@ const INITIAL_LOADS = [
     rateConName: "GP-1047-rate-confirmation.pdf"
   }
 ];
+
+const DELIVERY_VISIBLE_STATUSES = ["Loaded", "In Transit", "Delivered"];
 
 function money(value) {
   return new Intl.NumberFormat("en-US", {
@@ -120,6 +124,11 @@ export default function Home() {
     event.preventDefault();
 
     const driver = DRIVERS.find((item) => item.id === newLoad.driverId);
+    if (!driver) {
+      flash("Please select a driver.");
+      return;
+    }
+
     const id =
       newLoad.id.trim() ||
       `GP-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -162,6 +171,7 @@ export default function Home() {
 
   function resetDemo() {
     setLoads(INITIAL_LOADS);
+    window.localStorage.removeItem("gp-driver-connect-loads");
     flash("Demo data restored.");
   }
 
@@ -197,6 +207,11 @@ export default function Home() {
       </main>
     );
   }
+
+  const deliveryUnlocked = Boolean(
+    activeLoad?.loadPhotoName &&
+      DELIVERY_VISIBLE_STATUSES.includes(activeLoad.status)
+  );
 
   return (
     <main>
@@ -239,7 +254,8 @@ export default function Home() {
                 <div>
                   <span className="loadNumber">{activeLoad.id}</span>
                   <h3>
-                    {activeLoad.pickup} → {activeLoad.loadPhotoName && ["Loaded", "In Transit", "Delivered"].includes(activeLoad.status) ? activeLoad.delivery : "Delivery locked"}
+                    {activeLoad.pickup} →{" "}
+                    {deliveryUnlocked ? activeLoad.delivery : "Delivery locked"}
                   </h3>
                 </div>
                 <span className="status">{activeLoad.status}</span>
@@ -247,20 +263,22 @@ export default function Home() {
 
               <div className="detailsGrid">
                 <div>
-                  <small>Pickup</small>
+                  <small>Pickup date</small>
                   <strong>{activeLoad.pickupDate}</strong>
                 </div>
                 <div>
-                  <small>Delivery</small>
-                  <strong>{activeLoad.loadPhotoName && ["Loaded", "In Transit", "Delivered"].includes(activeLoad.status) ? activeLoad.deliveryDate : "Locked"}</strong>
+                  <small>Delivery date</small>
+                  <strong>
+                    {deliveryUnlocked ? activeLoad.deliveryDate : "Locked"}
+                  </strong>
                 </div>
                 <div>
-                  <small>Broker</small>
-                  <strong>{activeLoad.broker}</strong>
+                  <small>Load number</small>
+                  <strong>{activeLoad.id}</strong>
                 </div>
                 <div>
                   <small>Reference</small>
-                  <strong>{activeLoad.reference}</strong>
+                  <strong>{activeLoad.reference || "—"}</strong>
                 </div>
               </div>
 
@@ -286,6 +304,12 @@ export default function Home() {
                             !activeLoad.loadPhotoName
                           ) {
                             flash("The loaded-freight photo is required first.");
+                            return;
+                          }
+
+                          if (status === "Delivered" && !activeLoad.podName) {
+                            flash("Upload the POD before marking the load delivered.");
+                            document.getElementById("pod-input")?.click();
                             return;
                           }
 
@@ -326,7 +350,8 @@ export default function Home() {
                   />
                   <span>📸</span>
                   <strong>
-                    {activeLoad.loadPhotoName || "Take a photo of the loaded freight"}
+                    {activeLoad.loadPhotoName ||
+                      "Take a photo of the loaded freight"}
                   </strong>
                   <small>Required before the delivery location is shown</small>
                 </label>
@@ -336,8 +361,10 @@ export default function Home() {
                 <h4>Proof of Delivery</h4>
                 <label className="uploadBox">
                   <input
+                    id="pod-input"
                     type="file"
                     accept="image/*,.pdf"
+                    capture="environment"
                     onChange={(event) =>
                       handleFile(
                         activeLoad.id,
@@ -350,7 +377,7 @@ export default function Home() {
                   <strong>
                     {activeLoad.podName || "Upload POD photo or PDF"}
                   </strong>
-                  <small>Tap to choose a file from your phone</small>
+                  <small>Required before marking the load delivered</small>
                 </label>
               </div>
             </article>
@@ -541,6 +568,10 @@ export default function Home() {
                         {load.driver}
                       </span>
                       <span>
+                        <small>Broker</small>
+                        {load.broker || "—"}
+                      </span>
+                      <span>
                         <small>Pay</small>
                         {money(load.pay)}
                       </span>
@@ -584,3 +615,8 @@ export default function Home() {
     </main>
   );
 }
+'''
+
+path = Path("/mnt/data/page.js")
+path.write_text(content, encoding="utf-8")
+print(f"Created {path} ({path.stat().st_size} bytes)")
