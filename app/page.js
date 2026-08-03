@@ -56,6 +56,9 @@ function money(value) {
 }
 
 export default function Home() {
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  
   const [role, setRole] = useState("");
   const [loads, setLoads] = useState(INITIAL_LOADS);
   const [hydrated, setHydrated] = useState(false);
@@ -71,7 +74,20 @@ export default function Home() {
     reference: "",
     pay: ""
   });
+useEffect(() => {
+  supabase.auth.getSession().then(({ data }) => {
+    setSession(data.session);
+    setAuthLoading(false);
+  });
 
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    setSession(session);
+  });
+
+  return () => subscription.unsubscribe();
+}, []);
   useEffect(() => {
     const saved = window.localStorage.getItem("gp-driver-connect-loads");
     if (saved) {
