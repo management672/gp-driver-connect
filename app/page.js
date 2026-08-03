@@ -645,8 +645,4 @@ export default function Home() {
     </main>
   );
 }
-'''
-
-path = Path("/mnt/data/page.js")
-path.write_text(content, encoding="utf-8")
-print(f"Created {path} with {len(content.splitlines())} lines")
+'
