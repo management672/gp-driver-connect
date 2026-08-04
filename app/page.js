@@ -203,13 +203,13 @@ useEffect(() => {
 
           <div className="roleGrid">
             <button className="roleCard" onClick={() => setRole("driver")}>
-              <span className="roleIcon" aria-hidden="true">DRIVER</span>
+              <span className="roleIcon" aria-hidden="true">🚚</span>
               <strong>Driver Portal</strong>
               <small>Current load, status updates and POD</small>
             </button>
 
             <button className="roleCard" onClick={() => setRole("dispatch")}>
-              <span className="roleIcon" aria-hidden="true">DISPATCH</span>
+              <span className="roleIcon" aria-hidden="true">💻</span>
               <strong>Dispatch Portal</strong>
               <small>Assign loads, paperwork and driver pay</small>
             </button>
