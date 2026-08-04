@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "../lib/supabase";
 const DRIVERS = [
   { id: "driver-1", name: "Carlos Martinez" },
   { id: "driver-2", name: "Michael Johnson" },
@@ -56,9 +55,6 @@ function money(value) {
 }
 
 export default function Home() {
-  const [session, setSession] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
-  
   const [role, setRole] = useState("");
   const [loads, setLoads] = useState(INITIAL_LOADS);
   const [hydrated, setHydrated] = useState(false);
@@ -74,20 +70,6 @@ export default function Home() {
     reference: "",
     pay: ""
   });
-useEffect(() => {
-  supabase.auth.getSession().then(({ data }) => {
-    setSession(data.session);
-    setAuthLoading(false);
-  });
-
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange((_event, session) => {
-    setSession(session);
-  });
-
-  return () => subscription.unsubscribe();
-}, []);
   useEffect(() => {
     const saved = window.localStorage.getItem("gp-driver-connect-loads");
     if (saved) {
@@ -620,15 +602,15 @@ useEffect(() => {
                         {money(load.pay)}
                       </span>
                       <span>
-                        <small>Loaded freight photo</small>
+                        <small>Loaded freight photo · {load.id}</small>
                         {load.loadPhotoName || "Not uploaded"}
                       </span>
                       <span>
-                        <small>POD</small>
+                        <small>POD · {load.id}</small>
                         {load.podName || "Not uploaded"}
                       </span>
                       <span>
-                        <small>Rate confirmation</small>
+                        <small>Rate confirmation · {load.id}</small>
                         {load.rateConName || "Not uploaded"}
                       </span>
                     </div>
